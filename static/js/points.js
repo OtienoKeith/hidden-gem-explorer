@@ -1,5 +1,6 @@
 let totalPoints = parseInt(localStorage.getItem('points')) || 0;
 const visitedLocations = new Set(JSON.parse(localStorage.getItem('visitedLocations') || '[]'));
+const locationDetails = JSON.parse(localStorage.getItem('locationDetails') || '{}');
 let totalAvailablePoints = 0;
 let allLocations = [];
 
@@ -35,7 +36,6 @@ function updatePointsDisplay() {
 }
 
 function clearPoints() {
-    // Reset points for new location
     allLocations = [];
     totalAvailablePoints = 0;
     updatePointsDisplay();
@@ -53,7 +53,7 @@ function updateMarkerStyles() {
         window.markers.forEach((marker, index) => {
             const location = allLocations[index];
             if (location && visitedLocations.has(location.id)) {
-                if (marker.setIcon) {  // For regular markers
+                if (marker.setIcon) {
                     marker.setIcon({
                         url: '/static/img/marker.svg',
                         scaledSize: new google.maps.Size(30, 30),
@@ -65,16 +65,37 @@ function updateMarkerStyles() {
     }
 }
 
+function celebratePoints() {
+    confetti({
+        particleCount: 100,
+        spread: 70,
+        origin: { y: 0.6 }
+    });
+}
+
 function collectPoints(locationId, points) {
     if (!visitedLocations.has(locationId)) {
         totalPoints += points;
         visitedLocations.add(locationId);
         
+        // Store location details with visit date
+        const location = allLocations.find(loc => loc.id === locationId);
+        if (location) {
+            locationDetails[locationId] = {
+                ...location,
+                visitDate: new Date().toISOString()
+            };
+        }
+        
         localStorage.setItem('points', totalPoints);
         localStorage.setItem('visitedLocations', JSON.stringify([...visitedLocations]));
+        localStorage.setItem('locationDetails', JSON.stringify(locationDetails));
         
         updatePointsDisplay();
         updateMarkerStyles();
+        
+        // Trigger celebration effects
+        celebratePoints();
         
         // Show achievement notification
         const toast = document.createElement('div');

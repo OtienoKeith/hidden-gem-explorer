@@ -16,7 +16,6 @@ db.init_app(app)
 
 def generate_locations_from_places(lat, lng):
     # Generate point-earning locations based on nearby attractions
-    # This is a simplified version - in production you'd want to use the Places API
     locations = [
         {
             "id": f"loc_{i}",
@@ -33,9 +32,16 @@ def generate_locations_from_places(lat, lng):
     return locations
 
 @app.route('/')
-def index():
-    return render_template('index.html', 
-                         api_key=app.config["GOOGLE_MAPS_API_KEY"])
+def landing():
+    return render_template('landing.html')
+
+@app.route('/explore')
+def explore():
+    return render_template('explore.html', api_key=app.config["GOOGLE_MAPS_API_KEY"])
+
+@app.route('/visited')
+def visited():
+    return render_template('visited.html', api_key=app.config["GOOGLE_MAPS_API_KEY"])
 
 @app.route('/api/places', methods=['POST'])
 def get_places():
