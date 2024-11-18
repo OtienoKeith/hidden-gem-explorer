@@ -21,23 +21,46 @@ def index():
 
 @app.route('/api/locations')
 def get_locations():
-    # Sample location data
     locations = [
         {
             "id": 1,
-            "name": "Hidden Waterfall",
-            "lat": 40.7128,
-            "lng": -74.0060,
-            "description": "A beautiful waterfall hidden in the city",
+            "name": "Empire State Building",
+            "lat": 40.7484,
+            "lng": -73.9857,
+            "description": "World-famous 102-story landmark with observation deck offering spectacular city views. Look for the iconic spire!",
             "points": 100
         },
         {
             "id": 2,
-            "name": "Secret Garden",
+            "name": "Central Park",
+            "lat": 40.7829,
+            "lng": -73.9654,
+            "description": "Massive urban park with famous landmarks like Belvedere Castle and Bethesda Fountain. Start at the south entrance!",
+            "points": 100
+        },
+        {
+            "id": 3,
+            "name": "Times Square",
             "lat": 40.7580,
             "lng": -73.9855,
-            "description": "A peaceful garden away from the bustle",
+            "description": "Bright, iconic hub of NYC. You can't miss the massive billboards and Broadway lights!",
+            "points": 100
+        },
+        {
+            "id": 4,
+            "name": "Statue of Liberty",
+            "lat": 40.6892,
+            "lng": -74.0445,
+            "description": "The famous Lady Liberty standing on Liberty Island. Best viewed from Battery Park!",
             "points": 150
+        },
+        {
+            "id": 5,
+            "name": "Brooklyn Bridge",
+            "lat": 40.7061,
+            "lng": -73.9969,
+            "description": "Historic bridge connecting Manhattan and Brooklyn. Walk across for amazing city views!",
+            "points": 100
         }
     ]
     return jsonify(locations)

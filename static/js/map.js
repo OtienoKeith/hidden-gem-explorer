@@ -4,8 +4,8 @@ let currentInfoWindow = null;
 
 async function initMap() {
     map = new google.maps.Map(document.getElementById('map'), {
-        center: { lat: 40.7128, lng: -74.0060 },
-        zoom: 13,
+        center: { lat: 40.7580, lng: -73.9855 },  // Times Square
+        zoom: 12,
         mapTypeId: 'terrain',
         tilt: 45
     });
@@ -39,7 +39,7 @@ function addMarker(location) {
         title: location.name,
         icon: {
             url: '/static/img/marker.svg',
-            scaledSize: new google.maps.Size(30, 30),
+            scaledSize: new google.maps.Size(40, 40),  // Increased from 30 to 40
             opacity: isVisited ? 0.5 : 1
         }
     });
