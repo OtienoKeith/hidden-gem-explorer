@@ -33,11 +33,15 @@ async function initMap() {
 
 function addMarker(location) {
     const isVisited = visitedLocations.has(location.id);
-    const marker = new google.maps.marker.AdvancedMarkerElement({
+    const marker = new google.maps.Marker({
         position: { lat: location.lat, lng: location.lng },
         map: map,
         title: location.name,
-        content: buildMarkerContent(location, isVisited)
+        icon: {
+            url: '/static/img/marker.svg',
+            scaledSize: new google.maps.Size(30, 30),
+            opacity: isVisited ? 0.5 : 1
+        }
     });
 
     marker.addListener('click', () => {
@@ -66,20 +70,6 @@ function addMarker(location) {
     });
 
     markers.push(marker);
-}
-
-function buildMarkerContent(location, isVisited) {
-    const markerElement = document.createElement('div');
-    markerElement.innerHTML = `
-        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" 
-             fill="${isVisited ? '#808080' : '#ff4081'}" stroke="#ffffff" 
-             stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-             style="opacity: ${isVisited ? '0.5' : '1'}">
-            <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/>
-            <circle cx="12" cy="9" r="3"/>
-        </svg>
-    `;
-    return markerElement;
 }
 
 function updateLocationInfo(location) {
@@ -121,5 +111,3 @@ function getSuggestions(location) {
         }
     });
 }
-
-window.onload = initMap;

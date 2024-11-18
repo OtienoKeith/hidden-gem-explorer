@@ -73,7 +73,7 @@
 {% endblock %}
 
 {% block scripts %}
-<script src="https://maps.googleapis.com/maps/api/js?key={{ api_key }}&libraries=places&loading=async"></script>
+<script src="https://maps.googleapis.com/maps/api/js?key={{ api_key }}&libraries=places&callback=initMap" async defer></script>
 <script src="https://kit.fontawesome.com/1234567890.js" crossorigin="anonymous"></script>
 <script src="/static/js/points.js"></script>
 <script src="/static/js/map.js"></script>
