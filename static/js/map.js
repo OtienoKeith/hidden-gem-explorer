@@ -61,10 +61,14 @@ function addMarker(location) {
         const infoWindow = new google.maps.InfoWindow({
             content: `
                 <div class="info-window">
-                    <h5 style="color: #000000;">${location.name}</h5>
-                    <p style="color: #000000;">${location.description}</p>
+                    <h5 style="color: #000000; margin-bottom: 10px;">${location.name}</h5>
+                    <p style="color: #000000;">${location.description.split('Activities:')[0]}</p>
+                    <div style="color: #000000;">
+                        <strong>Activities:</strong><br>
+                        ${location.description.split('Activities:')[1].split(') ').join(')<br>')}
+                    </div>
                     <button onclick="collectPoints(${location.id}, ${location.points})" 
-                            class="btn btn-sm ${isVisited ? 'btn-secondary disabled' : 'btn-success'}">
+                            class="btn btn-sm ${isVisited ? 'btn-secondary disabled' : 'btn-success'} mt-2">
                         ${isVisited ? 'Already Visited' : `Collect ${location.points} points`}
                     </button>
                 </div>

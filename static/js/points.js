@@ -17,11 +17,19 @@ function showWelcomeModal() {
 }
 
 function updatePointsDisplay() {
-    document.getElementById('points-display').textContent = totalPoints;
-    document.getElementById('total-available').textContent = totalAvailablePoints;
+    const pointsDisplay = document.getElementById('points-display');
+    const totalAvailableDisplay = document.getElementById('total-available');
+    const progressBar = document.getElementById('progress-bar');
+    
+    if (!pointsDisplay || !totalAvailableDisplay || !progressBar) {
+        console.error('Required elements not found for points display');
+        return;
+    }
+
+    pointsDisplay.textContent = totalPoints;
+    totalAvailableDisplay.textContent = totalAvailablePoints;
     
     const progressPercentage = (totalPoints / totalAvailablePoints) * 100 || 0;
-    const progressBar = document.getElementById('progress-bar');
     progressBar.style.width = `${progressPercentage}%`;
     progressBar.setAttribute('aria-valuenow', progressPercentage);
 }
