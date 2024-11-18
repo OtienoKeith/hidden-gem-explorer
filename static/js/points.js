@@ -34,6 +34,13 @@ function updatePointsDisplay() {
     progressBar.setAttribute('aria-valuenow', progressPercentage);
 }
 
+function clearPoints() {
+    // Reset points for new location
+    allLocations = [];
+    totalAvailablePoints = 0;
+    updatePointsDisplay();
+}
+
 function initializePoints(locations) {
     allLocations = locations;
     totalAvailablePoints = locations.reduce((sum, loc) => sum + loc.points, 0);
@@ -46,11 +53,13 @@ function updateMarkerStyles() {
         window.markers.forEach((marker, index) => {
             const location = allLocations[index];
             if (location && visitedLocations.has(location.id)) {
-                marker.setIcon({
-                    url: '/static/img/marker.svg',
-                    scaledSize: new google.maps.Size(30, 30),
-                    opacity: 0.5
-                });
+                if (marker.setIcon) {  // For regular markers
+                    marker.setIcon({
+                        url: '/static/img/marker.svg',
+                        scaledSize: new google.maps.Size(30, 30),
+                        opacity: 0.5
+                    });
+                }
             }
         });
     }

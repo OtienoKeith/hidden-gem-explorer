@@ -12,16 +12,20 @@
             <div class="modal-body">
                 <div class="welcome-steps">
                     <div class="mb-3">
-                        <i class="fas fa-map-marked-alt fs-4 mb-2"></i>
-                        <p>Discover unique locations in the city</p>
+                        <i class="fas fa-globe-americas fs-4 mb-2"></i>
+                        <p>Explore hidden gems anywhere in the world!</p>
                     </div>
                     <div class="mb-3">
-                        <i class="fas fa-mouse-pointer fs-4 mb-2"></i>
-                        <p>Click markers to learn about hidden spots</p>
+                        <i class="fas fa-search-location fs-4 mb-2"></i>
+                        <p>Search any city or place to start your adventure</p>
+                    </div>
+                    <div class="mb-3">
+                        <i class="fas fa-map-marked-alt fs-4 mb-2"></i>
+                        <p>Click markers to discover unique locations</p>
                     </div>
                     <div class="mb-3">
                         <i class="fas fa-star fs-4 mb-2"></i>
-                        <p>Earn points by visiting new locations</p>
+                        <p>Earn points by visiting new places</p>
                     </div>
                     <div class="mb-3">
                         <i class="fas fa-trophy fs-4 mb-2"></i>
@@ -30,7 +34,7 @@
                 </div>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-primary" data-bs-dismiss="modal" id="getStartedBtn">Get Started!</button>
+                <button type="button" class="btn btn-primary" data-bs-dismiss="modal" id="getStartedBtn">Start Exploring!</button>
             </div>
         </div>
     </div>
@@ -45,7 +49,7 @@
             <div class="card mb-3">
                 <div class="card-body">
                     <h5 class="card-title">Search & Navigation</h5>
-                    <input id="pac-input" class="form-control mb-2" type="text" placeholder="Search places">
+                    <input id="pac-input" class="form-control mb-2" type="text" placeholder="Search any city or place">
                     <div id="route-panel" class="mt-2" style="display: none;">
                         <input id="origin-input" class="form-control mb-2" type="text" placeholder="Starting point">
                         <input id="destination-input" class="form-control mb-2" type="text" placeholder="Destination">
@@ -70,7 +74,7 @@
                 <div class="card-body">
                     <h5 class="card-title">Location Details</h5>
                     <div id="location-info">
-                        <p>Select a location on the map to see details</p>
+                        <p class="text-center">Search for a place to start exploring hidden gems!</p>
                     </div>
                 </div>
             </div>
@@ -85,7 +89,7 @@
 {% endblock %}
 
 {% block scripts %}
-<script src="https://maps.googleapis.com/maps/api/js?key={{ api_key }}&libraries=places,directions,marker&callback=initMap" defer></script>
+<script src="https://maps.googleapis.com/maps/api/js?key={{ api_key }}&libraries=places&callback=initMap" defer></script>
 <script src="https://kit.fontawesome.com/1234567890.js" crossorigin="anonymous"></script>
 <script src="/static/js/points.js"></script>
 <script src="/static/js/map.js"></script>
