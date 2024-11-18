@@ -1,12 +1,59 @@
 {% extends "base.html" %}
 
 {% block content %}
+<!-- Welcome Modal -->
+<div class="modal fade" id="welcomeModal" tabindex="-1" aria-labelledby="welcomeModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="welcomeModalLabel">Welcome to Hidden Gems Explorer!</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="welcome-steps">
+                    <div class="mb-3">
+                        <i class="fas fa-map-marked-alt fs-4 mb-2"></i>
+                        <p>Discover unique locations in the city</p>
+                    </div>
+                    <div class="mb-3">
+                        <i class="fas fa-mouse-pointer fs-4 mb-2"></i>
+                        <p>Click markers to learn about hidden spots</p>
+                    </div>
+                    <div class="mb-3">
+                        <i class="fas fa-star fs-4 mb-2"></i>
+                        <p>Earn points by visiting new locations</p>
+                    </div>
+                    <div class="mb-3">
+                        <i class="fas fa-trophy fs-4 mb-2"></i>
+                        <p>Track your progress and unlock achievements</p>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" data-bs-dismiss="modal" id="getStartedBtn">Get Started!</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <div class="container-fluid h-100">
     <div class="row h-100">
         <div class="col-md-9 p-0">
             <div id="map" class="map-container"></div>
         </div>
         <div class="col-md-3 p-3">
+            <div class="card mb-3">
+                <div class="card-body">
+                    <h5 class="card-title">Progress</h5>
+                    <div class="progress mb-2">
+                        <div class="progress-bar" id="progress-bar" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
+                    </div>
+                    <div class="d-flex justify-content-between">
+                        <small>Points: <span id="points-display">0</span></small>
+                        <small>Available: <span id="total-available">0</span></small>
+                    </div>
+                </div>
+            </div>
             <div class="card">
                 <div class="card-body">
                     <h5 class="card-title">Location Details</h5>
@@ -26,7 +73,8 @@
 {% endblock %}
 
 {% block scripts %}
-<script src="https://maps.googleapis.com/maps/api/js?key={{ api_key }}&libraries=places"></script>
+<script src="https://maps.googleapis.com/maps/api/js?key={{ api_key }}&libraries=places&loading=async"></script>
+<script src="https://kit.fontawesome.com/1234567890.js" crossorigin="anonymous"></script>
 <script src="/static/js/points.js"></script>
 <script src="/static/js/map.js"></script>
 {% endblock %}

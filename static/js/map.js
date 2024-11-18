@@ -13,6 +13,9 @@ async function initMap() {
     // Load locations from backend
     const response = await fetch('/api/locations');
     const locations = await response.json();
+    
+    // Initialize points system with locations
+    initializePoints(locations);
 
     locations.forEach(location => {
         addMarker(location);
@@ -29,14 +32,12 @@ async function initMap() {
 }
 
 function addMarker(location) {
-    const marker = new google.maps.Marker({
+    const isVisited = visitedLocations.has(location.id);
+    const marker = new google.maps.marker.AdvancedMarkerElement({
         position: { lat: location.lat, lng: location.lng },
         map: map,
         title: location.name,
-        icon: {
-            url: '/static/img/marker.svg',
-            scaledSize: new google.maps.Size(30, 30)
-        }
+        content: buildMarkerContent(location, isVisited)
     });
 
     marker.addListener('click', () => {
@@ -50,8 +51,8 @@ function addMarker(location) {
                     <h5>${location.name}</h5>
                     <p>${location.description}</p>
                     <button onclick="collectPoints(${location.id}, ${location.points})" 
-                            class="btn btn-sm btn-success">
-                        Collect ${location.points} points
+                            class="btn btn-sm ${isVisited ? 'btn-secondary disabled' : 'btn-success'}">
+                        ${isVisited ? 'Already Visited' : `Collect ${location.points} points`}
                     </button>
                 </div>
             `
@@ -67,12 +68,35 @@ function addMarker(location) {
     markers.push(marker);
 }
 
+function buildMarkerContent(location, isVisited) {
+    const markerElement = document.createElement('div');
+    markerElement.innerHTML = `
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" 
+             fill="${isVisited ? '#808080' : '#ff4081'}" stroke="#ffffff" 
+             stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+             style="opacity: ${isVisited ? '0.5' : '1'}">
+            <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/>
+            <circle cx="12" cy="9" r="3"/>
+        </svg>
+    `;
+    return markerElement;
+}
+
 function updateLocationInfo(location) {
+    const isVisited = visitedLocations.has(location.id);
     const locationInfo = document.getElementById('location-info');
     locationInfo.innerHTML = `
         <h4>${location.name}</h4>
         <p>${location.description}</p>
-        <p><strong>Points available:</strong> ${location.points}</p>
+        <div class="d-flex justify-content-between align-items-center">
+            <span class="badge ${isVisited ? 'bg-secondary' : 'bg-success'}">
+                ${isVisited ? 'Visited' : `${location.points} points available`}
+            </span>
+            ${!isVisited ? `<button onclick="collectPoints(${location.id}, ${location.points})" 
+                                  class="btn btn-sm btn-success">
+                Collect Points
+            </button>` : ''}
+        </div>
     `;
 }
 
