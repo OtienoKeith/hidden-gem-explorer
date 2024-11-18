@@ -44,6 +44,18 @@
         <div class="col-md-3 p-3">
             <div class="card mb-3">
                 <div class="card-body">
+                    <h5 class="card-title">Search & Navigation</h5>
+                    <input id="pac-input" class="form-control mb-2" type="text" placeholder="Search places">
+                    <div id="route-panel" class="mt-2" style="display: none;">
+                        <input id="origin-input" class="form-control mb-2" type="text" placeholder="Starting point">
+                        <input id="destination-input" class="form-control mb-2" type="text" placeholder="Destination">
+                        <button id="route-button" class="btn btn-primary btn-sm">Get Directions</button>
+                    </div>
+                    <button id="toggle-route" class="btn btn-outline-primary btn-sm mt-2">Toggle Route Planner</button>
+                </div>
+            </div>
+            <div class="card mb-3">
+                <div class="card-body">
                     <h5 class="card-title">Progress</h5>
                     <div class="progress mb-2">
                         <div class="progress-bar" id="progress-bar" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
@@ -73,12 +85,8 @@
 {% endblock %}
 
 {% block scripts %}
-<script src="https://maps.googleapis.com/maps/api/js?key={{ api_key }}&libraries=places"></script>
+<script src="https://maps.googleapis.com/maps/api/js?key={{ api_key }}&libraries=places,directions,marker&callback=initMap" defer></script>
 <script src="https://kit.fontawesome.com/1234567890.js" crossorigin="anonymous"></script>
 <script src="/static/js/points.js"></script>
 <script src="/static/js/map.js"></script>
-<script>
-    // Initialize map after scripts are loaded
-    window.addEventListener('load', initMap);
-</script>
 {% endblock %}
