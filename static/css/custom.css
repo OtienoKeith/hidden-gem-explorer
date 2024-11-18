@@ -1,0 +1,23 @@
+.map-container {
+    height: calc(100vh - 56px);
+    width: 100%;
+}
+
+.location-card {
+    border-radius: 8px;
+    margin-bottom: 1rem;
+}
+
+#location-info {
+    min-height: 200px;
+}
+
+.badge {
+    font-size: 1rem;
+}
+
+@media (max-width: 768px) {
+    .map-container {
+        height: 60vh;
+    }
+}
