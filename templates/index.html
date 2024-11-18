@@ -73,8 +73,12 @@
 {% endblock %}
 
 {% block scripts %}
-<script async src="https://maps.googleapis.com/maps/api/js?key={{ api_key }}&libraries=places&callback=initMap"></script>
+<script src="https://maps.googleapis.com/maps/api/js?key={{ api_key }}&libraries=places"></script>
 <script src="https://kit.fontawesome.com/1234567890.js" crossorigin="anonymous"></script>
 <script src="/static/js/points.js"></script>
 <script src="/static/js/map.js"></script>
+<script>
+    // Initialize map after scripts are loaded
+    window.addEventListener('load', initMap);
+</script>
 {% endblock %}

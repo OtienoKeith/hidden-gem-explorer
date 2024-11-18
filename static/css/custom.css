@@ -16,6 +16,13 @@
     font-size: 1rem;
 }
 
+#map {
+    height: 100%;
+    width: 100%;
+    min-height: 400px;
+    background: #f8f9fa;
+}
+
 @media (max-width: 768px) {
     .map-container {
         height: 60vh;

@@ -3,32 +3,41 @@ let markers = [];
 let currentInfoWindow = null;
 
 async function initMap() {
-    map = new google.maps.Map(document.getElementById('map'), {
-        center: { lat: 40.7580, lng: -73.9855 },  // Times Square
-        zoom: 12,
-        mapTypeId: 'terrain',
-        tilt: 45
-    });
+    try {
+        console.log('Initializing map...');
+        map = new google.maps.Map(document.getElementById('map'), {
+            center: { lat: 40.7580, lng: -73.9855 },  // Times Square
+            zoom: 12,
+            mapTypeId: 'terrain',
+            tilt: 45
+        });
+        console.log('Map initialized successfully');
 
-    // Load locations from backend
-    const response = await fetch('/api/locations');
-    const locations = await response.json();
-    
-    // Initialize points system with locations
-    initializePoints(locations);
+        // Load locations from backend
+        const response = await fetch('/api/locations');
+        const locations = await response.json();
+        console.log('Locations loaded:', locations);
+        
+        // Initialize points system with locations
+        initializePoints(locations);
 
-    locations.forEach(location => {
-        addMarker(location);
-    });
+        locations.forEach(location => {
+            addMarker(location);
+        });
 
-    // Enable tilt when zoomed in
-    map.addListener('zoom_changed', () => {
-        if (map.getZoom() > 15) {
-            map.setTilt(45);
-        } else {
-            map.setTilt(0);
-        }
-    });
+        // Enable tilt when zoomed in
+        map.addListener('zoom_changed', () => {
+            if (map.getZoom() > 15) {
+                map.setTilt(45);
+            } else {
+                map.setTilt(0);
+            }
+        });
+
+    } catch (error) {
+        console.error('Error initializing map:', error);
+        document.getElementById('map').innerHTML = '<div class="alert alert-danger">Error loading map. Please refresh the page.</div>';
+    }
 }
 
 function addMarker(location) {
