@@ -4,6 +4,22 @@ const locationDetails = JSON.parse(localStorage.getItem('locationDetails') || '{
 let totalAvailablePoints = 0;
 let allLocations = [];
 
+function updateAllPointsDisplays() {
+    // Update all points displays across the site
+    const pointsDisplays = document.querySelectorAll('#points-display');
+    pointsDisplays.forEach(display => {
+        display.textContent = totalPoints;
+    });
+    
+    // Update progress bars
+    const progressBars = document.querySelectorAll('.progress-bar');
+    progressBars.forEach(bar => {
+        const progressPercentage = (totalPoints / totalAvailablePoints) * 100 || 0;
+        bar.style.width = `${progressPercentage}%`;
+        bar.setAttribute('aria-valuenow', progressPercentage);
+    });
+}
+
 function showWelcomeModal() {
     const hasVisited = localStorage.getItem('hasVisited');
     if (!hasVisited) {
@@ -11,37 +27,25 @@ function showWelcomeModal() {
         welcomeModal.show();
         localStorage.setItem('hasVisited', 'true');
         
-        document.getElementById('getStartedBtn').addEventListener('click', () => {
+        document.getElementById('getStartedBtn')?.addEventListener('click', () => {
             welcomeModal.hide();
         });
     }
 }
 
 function updatePointsDisplay() {
-    const pointsDisplay = document.getElementById('points-display');
     const totalAvailableDisplay = document.getElementById('total-available');
-    const progressBar = document.getElementById('progress-bar');
     
-    if (!pointsDisplay || !totalAvailableDisplay || !progressBar) {
-        console.error('Required elements not found for points display');
-        return;
+    if (totalAvailableDisplay) {
+        totalAvailableDisplay.textContent = totalAvailablePoints;
     }
-
-    pointsDisplay.textContent = totalPoints;
-    totalAvailableDisplay.textContent = totalAvailablePoints;
     
-    const progressPercentage = (totalPoints / totalAvailablePoints) * 100 || 0;
-    progressBar.style.width = `${progressPercentage}%`;
-    progressBar.setAttribute('aria-valuenow', progressPercentage);
+    updateAllPointsDisplays();
 }
 
 function clearPoints() {
     allLocations = [];
     totalAvailablePoints = 0;
-    // Clear visited locations when changing area
-    visitedLocations.clear();
-    localStorage.setItem('visitedLocations', '[]');
-    localStorage.setItem('locationDetails', '{}');
     updatePointsDisplay();
 }
 
@@ -77,12 +81,37 @@ function celebratePoints() {
     });
 }
 
+function showAchievementToast(points) {
+    const toast = document.createElement('div');
+    toast.className = 'position-fixed bottom-0 end-0 p-3';
+    toast.style.zIndex = 1000;
+    toast.innerHTML = `
+        <div class="toast show" role="alert">
+            <div class="toast-header bg-success text-white">
+                <i class="fas fa-trophy me-2"></i>
+                <strong class="me-auto">Achievement Unlocked!</strong>
+                <button type="button" class="btn-close" data-bs-dismiss="toast"></button>
+            </div>
+            <div class="toast-body">
+                <div class="d-flex align-items-center">
+                    <i class="fas fa-star text-warning me-2"></i>
+                    <div>
+                        <strong>Points Earned: ${points}</strong><br>
+                        <small>Keep exploring to find more gems!</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+    document.body.appendChild(toast);
+    setTimeout(() => toast.remove(), 3000);
+}
+
 function collectPoints(locationId, points) {
     if (!visitedLocations.has(locationId)) {
         totalPoints += points;
         visitedLocations.add(locationId);
         
-        // Store location details with visit date
         const location = allLocations.find(loc => loc.id === locationId);
         if (location) {
             locationDetails[locationId] = {
@@ -95,41 +124,25 @@ function collectPoints(locationId, points) {
         localStorage.setItem('visitedLocations', JSON.stringify([...visitedLocations]));
         localStorage.setItem('locationDetails', JSON.stringify(locationDetails));
         
-        updatePointsDisplay();
+        updateAllPointsDisplays();
         updateMarkerStyles();
-        
-        // Trigger celebration effects
         celebratePoints();
         
         // Show achievement notification
-        const toast = document.createElement('div');
-        toast.className = 'position-fixed bottom-0 end-0 p-3';
-        toast.style.zIndex = 1000;
-        toast.innerHTML = `
-            <div class="toast show" role="alert">
-                <div class="toast-header bg-success text-white">
-                    <i class="fas fa-trophy me-2"></i>
-                    <strong class="me-auto">Achievement Unlocked!</strong>
-                    <button type="button" class="btn-close" data-bs-dismiss="toast"></button>
-                </div>
-                <div class="toast-body">
-                    <div class="d-flex align-items-center">
-                        <i class="fas fa-star text-warning me-2"></i>
-                        <div>
-                            <strong>Points Earned: ${points}</strong><br>
-                            <small>Keep exploring to find more gems!</small>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        `;
-        document.body.appendChild(toast);
-        setTimeout(() => toast.remove(), 3000);
+        showAchievementToast(points);
     }
 }
 
-// Initialize points display and show welcome modal
+// Add event listener for storage changes
+window.addEventListener('storage', (e) => {
+    if (e.key === 'points') {
+        totalPoints = parseInt(e.newValue) || 0;
+        updateAllPointsDisplays();
+    }
+});
+
+// Initialize points on page load
 window.addEventListener('load', () => {
-    updatePointsDisplay();
+    updateAllPointsDisplays();
     showWelcomeModal();
 });
