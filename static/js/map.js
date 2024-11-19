@@ -35,25 +35,20 @@ async function getUserLocation() {
 async function initMap() {
     try {
         console.log('Initializing map...');
-        let initialCenter = { lat: 0, lng: 0 };  // Default to world view
-        let initialZoom = 2;
-
-        try {
-            initialCenter = await getUserLocation();
-            initialZoom = 12;
-        } catch (error) {
-            console.log('Using default world view:', error.message);
+        const mapElement = document.getElementById('map');
+        if (!mapElement) {
+            console.error('Map container not found');
+            return;
         }
 
-        map = new google.maps.Map(document.getElementById('map'), {
-            center: initialCenter,
-            zoom: initialZoom,
-            mapId: 'hidden_gems_map',  // Add a map ID for advanced markers
+        map = new google.maps.Map(mapElement, {
+            center: { lat: 40.7128, lng: -74.0060 },  // New York City
+            zoom: 12,
             mapTypeId: 'terrain',
             tilt: 45
         });
         console.log('Map initialized successfully');
-
+        
         // Initialize directions service
         directionsService = new google.maps.DirectionsService();
         directionsRenderer = new google.maps.DirectionsRenderer({
@@ -63,6 +58,11 @@ async function initMap() {
 
         // Initialize search box
         const input = document.getElementById('pac-input');
+        if (!input) {
+            console.error('Search input not found');
+            return;
+        }
+        
         input.placeholder = "Search any city or place";
         searchBox = new google.maps.places.SearchBox(input);
         
@@ -120,42 +120,8 @@ async function initMap() {
         });
 
         // Setup route planning
-        const routeButton = document.getElementById('route-button');
-        const toggleRoute = document.getElementById('toggle-route');
-        const routePanel = document.getElementById('route-panel');
+        setupRoutePlanning();
         
-        toggleRoute?.addEventListener('click', () => {
-            routePanel.style.display = routePanel.style.display === 'none' ? 'block' : 'none';
-        });
-
-        routeButton?.addEventListener('click', () => {
-            const origin = document.getElementById('origin-input')?.value;
-            const destination = document.getElementById('destination-input')?.value;
-
-            if (!origin || !destination) {
-                alert('Please enter both origin and destination');
-                return;
-            }
-
-            directionsService.route({
-                origin,
-                destination,
-                travelMode: google.maps.TravelMode.DRIVING
-            }, (response, status) => {
-                if (status === 'OK') {
-                    directionsRenderer.setDirections(response);
-                } else {
-                    alert('Directions request failed due to ' + status);
-                }
-            });
-        });
-
-        // Initialize autocomplete for route inputs
-        if (google.maps.places) {
-            new google.maps.places.Autocomplete(document.getElementById('origin-input'));
-            new google.maps.places.Autocomplete(document.getElementById('destination-input'));
-        }
-
         // Enable tilt when zoomed in
         map.addListener('zoom_changed', () => {
             if (map.getZoom() > 15) {
@@ -165,27 +131,75 @@ async function initMap() {
             }
         });
 
-        // If we got user's location, fetch initial locations
-        if (initialZoom === 12) {
+        // Try to get user's location
+        try {
+            const userLocation = await getUserLocation();
+            map.setCenter(userLocation);
+            map.setZoom(13);
+
+            // Fetch initial locations for user's area
             const response = await fetch('/api/places', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
                 },
                 body: JSON.stringify({
-                    lat: initialCenter.lat,
-                    lng: initialCenter.lng
+                    lat: userLocation.lat,
+                    lng: userLocation.lng
                 })
             });
 
             const data = await response.json();
             initializePoints(data.locations);
             data.locations.forEach(location => addMarker(location));
+        } catch (error) {
+            console.log('Using default New York City location:', error.message);
         }
 
     } catch (error) {
         console.error('Error initializing map:', error);
-        document.getElementById('map').innerHTML = '<div class="alert alert-danger">Error loading map. Please refresh the page.</div>';
+        if (document.getElementById('map')) {
+            document.getElementById('map').innerHTML = 
+                '<div class="alert alert-danger">Error loading map. Please refresh the page.</div>';
+        }
+    }
+}
+
+function setupRoutePlanning() {
+    const routeButton = document.getElementById('route-button');
+    const toggleRoute = document.getElementById('toggle-route');
+    const routePanel = document.getElementById('route-panel');
+    
+    toggleRoute?.addEventListener('click', () => {
+        routePanel.style.display = routePanel.style.display === 'none' ? 'block' : 'none';
+    });
+
+    routeButton?.addEventListener('click', () => {
+        const origin = document.getElementById('origin-input')?.value;
+        const destination = document.getElementById('destination-input')?.value;
+
+        if (!origin || !destination) {
+            alert('Please enter both origin and destination');
+            return;
+        }
+
+        directionsService.route({
+            origin,
+            destination,
+            travelMode: google.maps.TravelMode.DRIVING
+        }, (response, status) => {
+            if (status === 'OK') {
+                directionsRenderer.setDirections(response);
+            } else {
+                alert('Directions request failed due to ' + status);
+            }
+        });
+    });
+
+    // Initialize autocomplete for route inputs
+    if (google.maps.places) {
+        new google.maps.places.Autocomplete(document.getElementById('origin-input'));
+        new google.maps.places.Autocomplete(document.getElementById('destination-input'));
     }
 }
 
@@ -300,6 +314,3 @@ function getSuggestions(location) {
         }
     });
 }
-
-// Initialize map when the API is loaded
-window.initMap = initMap;
