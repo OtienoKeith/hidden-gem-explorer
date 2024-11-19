@@ -68,9 +68,47 @@ async function initMap() {
 
         map = new google.maps.Map(mapElement, {
             center: { lat: 40.7128, lng: -74.0060 },
-            zoom: 12,
-            mapTypeId: 'terrain',
-            tilt: 45
+            zoom: 18, // Closer zoom for better 3D view
+            mapTypeId: 'satellite',
+            tilt: 45,
+            heading: 0,
+            mapTypeControl: true,
+            mapTypeControlOptions: {
+                style: google.maps.MapTypeControlStyle.DROPDOWN_MENU,
+                mapTypeIds: ['roadmap', 'satellite', 'hybrid', 'terrain']
+            },
+            // Enable all controls for better 3D navigation
+            streetViewControl: true,
+            rotateControl: true,
+            scaleControl: true,
+            fullscreenControl: true
+        });
+
+        // Add tilt button
+        const tiltButton = document.createElement('button');
+        tiltButton.classList.add('custom-map-control');
+        tiltButton.innerHTML = '<i class="fas fa-cube"></i>';
+        tiltButton.title = 'Toggle Tilt';
+        map.controls[google.maps.ControlPosition.RIGHT_TOP].push(tiltButton);
+
+        let isTilted = true;
+        tiltButton.addEventListener('click', () => {
+            isTilted = !isTilted;
+            map.setTilt(isTilted ? 45 : 0);
+            tiltButton.classList.toggle('active', isTilted);
+        });
+
+        // Add rotation control
+        const rotateButton = document.createElement('button');
+        rotateButton.classList.add('custom-map-control');
+        rotateButton.innerHTML = '<i class="fas fa-sync"></i>';
+        rotateButton.title = 'Rotate Map';
+        map.controls[google.maps.ControlPosition.RIGHT_TOP].push(rotateButton);
+
+        let heading = 0;
+        rotateButton.addEventListener('click', () => {
+            heading = (heading + 90) % 360;
+            map.setHeading(heading);
         });
 
         // Initialize features after map is created
@@ -80,7 +118,8 @@ async function initMap() {
         try {
             const userLocation = await getUserLocation();
             map.setCenter(userLocation);
-            map.setZoom(13);
+            map.setZoom(18);
+            map.setTilt(45);
 
             const data = await fetchLocations(userLocation.lat, userLocation.lng);
             initializePoints(data.locations);
@@ -136,8 +175,10 @@ async function setupMapFeatures() {
                 clearMarkers();
                 clearPoints();
                 
+                // Smooth transition to new location
+                map.setZoom(18);
                 map.setCenter(place.geometry.location);
-                map.setZoom(13);
+                map.setTilt(45);
 
                 const locationInfo = document.getElementById('location-info');
                 locationInfo.innerHTML = '<div class="text-center"><div class="spinner-border" role="status"></div><p>Loading locations...</p></div>';
@@ -243,15 +284,11 @@ function addMarker(location) {
 
     const isVisited = visitedLocations.has(location.id);
     
-    const marker = new google.maps.Marker({
+    const marker = new google.maps.marker.AdvancedMarkerElement({
         map,
         position: { lat: location.lat, lng: location.lng },
         title: location.name,
-        icon: {
-            url: '/static/img/marker.svg',
-            scaledSize: new google.maps.Size(40, 40),
-            opacity: isVisited ? 0.5 : 1
-        }
+        content: buildMarkerContent(location, isVisited)
     });
 
     marker.addListener('click', () => {
@@ -288,6 +325,18 @@ function addMarker(location) {
     });
 
     markers.push(marker);
+}
+
+function buildMarkerContent(location, isVisited) {
+    const markerElement = document.createElement('div');
+    markerElement.innerHTML = `
+        <div style="cursor: pointer;">
+            <img src="/static/img/marker.svg" 
+                 style="width: 40px; height: 40px; opacity: ${isVisited ? '0.5' : '1'}"
+                 alt="Location marker">
+        </div>
+    `;
+    return markerElement;
 }
 
 function parseDescription(description) {
