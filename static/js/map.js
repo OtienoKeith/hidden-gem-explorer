@@ -73,26 +73,26 @@ async function initMap() {
 
         // Listen for search results
         searchBox.addListener('places_changed', async () => {
-            const places = searchBox.getPlaces();
-            if (places.length === 0) return;
-
-            const place = places[0];
-            if (!place.geometry || !place.geometry.location) return;
-
-            // Clear existing markers and points
-            clearMarkers();
-            clearPoints();  // This will now clear visited locations too
-            
-            // Center map on new location
-            map.setCenter(place.geometry.location);
-            map.setZoom(13);
-
-            // Show loading indicator
-            const locationInfo = document.getElementById('location-info');
-            locationInfo.innerHTML = '<div class="text-center"><div class="spinner-border" role="status"></div><p>Loading locations...</p></div>';
-
             try {
-                // Fetch new locations for this area
+                const places = searchBox.getPlaces();
+                if (places.length === 0) return;
+
+                const place = places[0];
+                if (!place.geometry || !place.geometry.location) {
+                    throw new Error('Invalid place selected');
+                }
+
+                // Clear existing markers and points
+                clearMarkers();
+                clearPoints();
+                
+                // Center map on new location
+                map.setCenter(place.geometry.location);
+                map.setZoom(13);
+
+                const locationInfo = document.getElementById('location-info');
+                locationInfo.innerHTML = '<div class="text-center"><div class="spinner-border" role="status"></div><p>Loading locations...</p></div>';
+
                 const response = await fetch('/api/places', {
                     method: 'POST',
                     headers: {
@@ -104,18 +104,30 @@ async function initMap() {
                     })
                 });
 
+                if (!response.ok) {
+                    throw new Error('Failed to fetch locations');
+                }
+
                 const data = await response.json();
+                if (!data.locations || !Array.isArray(data.locations)) {
+                    throw new Error('Invalid location data received');
+                }
+
                 initializePoints(data.locations);
                 data.locations.forEach(location => addMarker(location));
 
-                // Update location info
                 locationInfo.innerHTML = `
                     <h4>Exploring ${place.name}</h4>
                     <p>Discover hidden gems in this area! Click on markers to learn more and collect points.</p>
                 `;
             } catch (error) {
-                console.error('Error fetching locations:', error);
-                locationInfo.innerHTML = '<div class="alert alert-danger">Error loading locations. Please try again.</div>';
+                console.error('Error:', error);
+                const locationInfo = document.getElementById('location-info');
+                locationInfo.innerHTML = `
+                    <div class="alert alert-danger">
+                        Error: ${error.message}. Please try again.
+                    </div>
+                `;
             }
         });
 
@@ -149,7 +161,15 @@ async function initMap() {
                 })
             });
 
+            if (!response.ok) {
+                throw new Error('Failed to fetch locations');
+            }
+
             const data = await response.json();
+            if (!data.locations || !Array.isArray(data.locations)) {
+                throw new Error('Invalid location data received');
+            }
+
             initializePoints(data.locations);
             data.locations.forEach(location => addMarker(location));
         } catch (error) {
@@ -208,20 +228,15 @@ function addMarker(location) {
 
     const isVisited = visitedLocations.has(location.id);
     
-    const markerContent = document.createElement('div');
-    markerContent.innerHTML = `
-        <div style="cursor: pointer;">
-            <img src="/static/img/marker.svg" 
-                 style="width: 40px; height: 40px; opacity: ${isVisited ? 0.5 : 1};"
-                 alt="Location marker">
-        </div>
-    `;
-
-    const marker = new google.maps.marker.AdvancedMarkerElement({
+    const marker = new google.maps.Marker({
         map,
         position: { lat: location.lat, lng: location.lng },
         title: location.name,
-        content: markerContent
+        icon: {
+            url: '/static/img/marker.svg',
+            scaledSize: new google.maps.Size(40, 40),
+            opacity: isVisited ? 0.5 : 1
+        }
     });
 
     marker.addListener('click', () => {
@@ -230,7 +245,7 @@ function addMarker(location) {
         }
 
         const [mainDesc, activities] = parseDescription(location.description);
-
+        
         const infoWindow = new google.maps.InfoWindow({
             content: `
                 <div class="info-window">

@@ -34,15 +34,15 @@ function initMap() {
         // Add markers for all visited locations
         Object.entries(locationDetails).forEach(([id, location]) => {
             if (visitedLocations.has(id)) {
-                new google.maps.marker.AdvancedMarkerElement({
+                new google.maps.Marker({
                     map: visitedMap,
                     position: { lat: location.lat, lng: location.lng },
                     title: location.name,
-                    content: new google.maps.marker.PinElement({
-                        glyph: "✓",
-                        glyphColor: "#FFFFFF",
-                        background: "#4CAF50"
-                    })
+                    icon: {
+                        url: '/static/img/marker.svg',
+                        scaledSize: new google.maps.Size(40, 40),
+                        opacity: 0.7
+                    }
                 });
             }
         });
