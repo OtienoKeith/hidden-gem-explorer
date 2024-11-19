@@ -9,4 +9,5 @@ dependencies = [
     "flask-sqlalchemy>=3.1.1",
     "openai>=1.54.4",
     "psycopg2-binary>=2.9.10",
+    "googlemaps>=4.10.0",
 ]
