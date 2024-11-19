@@ -89,10 +89,18 @@
 {% endblock %}
 
 {% block scripts %}
-<script defer src="/static/js/points.js"></script>
-<script defer src="/static/js/map.js"></script>
+<script src="/static/js/points.js"></script>
+<script src="/static/js/map.js"></script>
+<script>
+    function loadMap() {
+        if (window.google && window.google.maps) {
+            initMap();
+        } else {
+            console.error('Google Maps not loaded');
+        }
+    }
+</script>
 <script async
-    src="https://maps.googleapis.com/maps/api/js?key={{ api_key }}&libraries=places,marker&callback=initMap"
-    id="google-maps-script">
+    src="https://maps.googleapis.com/maps/api/js?key={{ api_key }}&libraries=places&callback=loadMap">
 </script>
 {% endblock %}
