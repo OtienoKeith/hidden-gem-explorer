@@ -284,11 +284,15 @@ function addMarker(location) {
 
     const isVisited = visitedLocations.has(location.id);
     
-    const marker = new google.maps.marker.AdvancedMarkerElement({
+    const marker = new google.maps.Marker({
         map,
         position: { lat: location.lat, lng: location.lng },
         title: location.name,
-        content: buildMarkerContent(location, isVisited)
+        icon: {
+            url: '/static/img/marker.svg',
+            scaledSize: new google.maps.Size(40, 40),
+            opacity: isVisited ? 0.5 : 1
+        }
     });
 
     marker.addListener('click', () => {

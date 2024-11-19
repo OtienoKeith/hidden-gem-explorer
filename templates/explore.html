@@ -89,11 +89,9 @@
 {% endblock %}
 
 {% block scripts %}
-<!-- Load points and map scripts first -->
 <script src="/static/js/points.js"></script>
 <script src="/static/js/map.js"></script>
-<!-- Remove inline initMap script since it's already in map.js -->
-<script async
+<script async defer
     src="https://maps.googleapis.com/maps/api/js?key={{ api_key }}&libraries=places&callback=initMap">
 </script>
 {% endblock %}
