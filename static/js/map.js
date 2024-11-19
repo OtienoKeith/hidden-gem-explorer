@@ -15,24 +15,29 @@ function clearMarkers() {
 }
 
 async function fetchLocations(lat, lng) {
-    const response = await fetch('/api/places', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ lat, lng })
-    });
+    try {
+        const response = await fetch('/api/places', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ lat, lng })
+        });
 
-    if (!response.ok) {
-        throw new Error('Failed to fetch locations');
+        if (!response.ok) {
+            throw new Error('Failed to fetch locations');
+        }
+
+        const data = await response.json();
+        if (!data.locations || !Array.isArray(data.locations)) {
+            throw new Error('Invalid location data received');
+        }
+
+        return data;
+    } catch (error) {
+        console.error('Error fetching locations:', error);
+        throw error;
     }
-
-    const data = await response.json();
-    if (!data.locations || !Array.isArray(data.locations)) {
-        throw new Error('Invalid location data received');
-    }
-
-    return data;
 }
 
 async function getUserLocation() {
@@ -71,23 +76,31 @@ async function initMap() {
             mapTypeId: 'terrain',
             tilt: 45
         });
+
         console.log('Map initialized successfully');
-
-        directionsService = new google.maps.DirectionsService();
-        directionsRenderer = new google.maps.DirectionsRenderer({
-            map: map,
-            panel: document.getElementById('route-panel')
-        });
-
-        const input = document.getElementById('pac-input');
-        if (!input) {
-            console.error('Search input not found');
-            return;
+        // Initialize remaining features...
+        await setupMapFeatures();
+    } catch (error) {
+        console.error('Error initializing map:', error);
+        const mapContainer = document.getElementById('map');
+        if (mapContainer) {
+            mapContainer.innerHTML = `
+                <div class="alert alert-danger">
+                    Error loading map: ${error.message}
+                    <button onclick="window.location.reload()" class="btn btn-outline-danger btn-sm ms-2">
+                        Reload Page
+                    </button>
+                </div>
+            `;
         }
-        
-        input.placeholder = "Search any city or place";
+    }
+}
+
+async function setupMapFeatures() {
+    // Initialize search box
+    const input = document.getElementById('pac-input');
+    if (input) {
         searchBox = new google.maps.places.SearchBox(input);
-        
         map.addListener('bounds_changed', () => {
             searchBox.setBounds(map.getBounds());
         });
@@ -133,42 +146,38 @@ async function initMap() {
                 `;
             }
         });
+    }
 
-        setupRoutePlanning();
-        
-        map.addListener('zoom_changed', () => {
-            if (map.getZoom() > 15) {
-                map.setTilt(45);
-            } else {
-                map.setTilt(0);
-            }
-        });
+    // Initialize directions service
+    directionsService = new google.maps.DirectionsService();
+    directionsRenderer = new google.maps.DirectionsRenderer({
+        map: map,
+        panel: document.getElementById('route-panel')
+    });
 
-        try {
-            const userLocation = await getUserLocation();
-            map.setCenter(userLocation);
-            map.setZoom(13);
+    // Setup other features
+    setupRoutePlanning();
 
-            const data = await fetchLocations(userLocation.lat, userLocation.lng);
-            initializePoints(data.locations);
-            data.locations.forEach(location => addMarker(location));
-        } catch (error) {
-            console.log('Using default New York City location:', error.message);
+    // Setup map tilt
+    map.addListener('zoom_changed', () => {
+        if (map.getZoom() > 15) {
+            map.setTilt(45);
+        } else {
+            map.setTilt(0);
         }
+    });
 
+    // Try to get user's location
+    try {
+        const userLocation = await getUserLocation();
+        map.setCenter(userLocation);
+        map.setZoom(13);
+
+        const data = await fetchLocations(userLocation.lat, userLocation.lng);
+        initializePoints(data.locations);
+        data.locations.forEach(location => addMarker(location));
     } catch (error) {
-        console.error('Error initializing map:', error);
-        const mapContainer = document.getElementById('map');
-        if (mapContainer) {
-            mapContainer.innerHTML = `
-                <div class="alert alert-danger">
-                    Error loading map: ${error.message}
-                    <button onclick="window.location.reload()" class="btn btn-outline-danger btn-sm ms-2">
-                        Reload Page
-                    </button>
-                </div>
-            `;
-        }
+        console.log('Using default New York City location:', error.message);
     }
 }
 
