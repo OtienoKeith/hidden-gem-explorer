@@ -56,8 +56,9 @@
 {% endblock %}
 
 {% block scripts %}
-<script src="/static/js/visited.js"></script>
-<script async defer
-    src="https://maps.googleapis.com/maps/api/js?key={{ api_key }}&libraries=places">
+<script defer src="/static/js/visited.js"></script>
+<script async
+    src="https://maps.googleapis.com/maps/api/js?key={{ api_key }}&libraries=places,marker"
+    id="google-maps-script">
 </script>
 {% endblock %}

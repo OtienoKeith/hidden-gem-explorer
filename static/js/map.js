@@ -5,6 +5,18 @@ let searchBox;
 let directionsService;
 let directionsRenderer;
 
+function buildAdvancedMarker(location, isVisited) {
+    const markerContent = document.createElement('div');
+    markerContent.innerHTML = `
+        <div style="cursor: pointer;">
+            <img src="/static/img/marker.svg" 
+                 style="width: 40px; height: 40px; opacity: ${isVisited ? 0.5 : 1};"
+                 alt="Location marker">
+        </div>
+    `;
+    return markerContent;
+}
+
 function clearMarkers() {
     markers.forEach(marker => marker.setMap(null));
     markers = [];
@@ -12,6 +24,42 @@ function clearMarkers() {
         currentInfoWindow.close();
         currentInfoWindow = null;
     }
+}
+
+async function fetchLocations(lat, lng) {
+    const cacheKey = `locations_${lat}_${lng}`;
+    const cached = localStorage.getItem(cacheKey);
+    if (cached) {
+        const {data, timestamp} = JSON.parse(cached);
+        if (Date.now() - timestamp < 5 * 60 * 1000) { // 5 minutes
+            return data;
+        }
+    }
+
+    const response = await fetch('/api/places', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ lat, lng })
+    });
+
+    if (!response.ok) {
+        throw new Error('Failed to fetch locations');
+    }
+
+    const data = await response.json();
+    if (!data.locations || !Array.isArray(data.locations)) {
+        throw new Error('Invalid location data received');
+    }
+
+    // Cache the response
+    localStorage.setItem(cacheKey, JSON.stringify({
+        data,
+        timestamp: Date.now()
+    }));
+
+    return data;
 }
 
 async function getUserLocation() {
@@ -49,14 +97,12 @@ async function initMap() {
         });
         console.log('Map initialized successfully');
         
-        // Initialize directions service
         directionsService = new google.maps.DirectionsService();
         directionsRenderer = new google.maps.DirectionsRenderer({
             map: map,
             panel: document.getElementById('route-panel')
         });
 
-        // Initialize search box
         const input = document.getElementById('pac-input');
         if (!input) {
             console.error('Search input not found');
@@ -66,12 +112,10 @@ async function initMap() {
         input.placeholder = "Search any city or place";
         searchBox = new google.maps.places.SearchBox(input);
         
-        // Bias searchBox results towards current map viewport
         map.addListener('bounds_changed', () => {
             searchBox.setBounds(map.getBounds());
         });
 
-        // Listen for search results
         searchBox.addListener('places_changed', async () => {
             try {
                 const places = searchBox.getPlaces();
@@ -82,36 +126,19 @@ async function initMap() {
                     throw new Error('Invalid place selected');
                 }
 
-                // Clear existing markers and points
                 clearMarkers();
                 clearPoints();
                 
-                // Center map on new location
                 map.setCenter(place.geometry.location);
                 map.setZoom(13);
 
                 const locationInfo = document.getElementById('location-info');
                 locationInfo.innerHTML = '<div class="text-center"><div class="spinner-border" role="status"></div><p>Loading locations...</p></div>';
 
-                const response = await fetch('/api/places', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        lat: place.geometry.location.lat(),
-                        lng: place.geometry.location.lng()
-                    })
-                });
-
-                if (!response.ok) {
-                    throw new Error('Failed to fetch locations');
-                }
-
-                const data = await response.json();
-                if (!data.locations || !Array.isArray(data.locations)) {
-                    throw new Error('Invalid location data received');
-                }
+                const data = await fetchLocations(
+                    place.geometry.location.lat(),
+                    place.geometry.location.lng()
+                );
 
                 initializePoints(data.locations);
                 data.locations.forEach(location => addMarker(location));
@@ -131,10 +158,8 @@ async function initMap() {
             }
         });
 
-        // Setup route planning
         setupRoutePlanning();
         
-        // Enable tilt when zoomed in
         map.addListener('zoom_changed', () => {
             if (map.getZoom() > 15) {
                 map.setTilt(45);
@@ -143,33 +168,12 @@ async function initMap() {
             }
         });
 
-        // Try to get user's location
         try {
             const userLocation = await getUserLocation();
             map.setCenter(userLocation);
             map.setZoom(13);
 
-            // Fetch initial locations for user's area
-            const response = await fetch('/api/places', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    lat: userLocation.lat,
-                    lng: userLocation.lng
-                })
-            });
-
-            if (!response.ok) {
-                throw new Error('Failed to fetch locations');
-            }
-
-            const data = await response.json();
-            if (!data.locations || !Array.isArray(data.locations)) {
-                throw new Error('Invalid location data received');
-            }
-
+            const data = await fetchLocations(userLocation.lat, userLocation.lng);
             initializePoints(data.locations);
             data.locations.forEach(location => addMarker(location));
         } catch (error) {
@@ -216,7 +220,6 @@ function setupRoutePlanning() {
         });
     });
 
-    // Initialize autocomplete for route inputs
     if (google.maps.places) {
         new google.maps.places.Autocomplete(document.getElementById('origin-input'));
         new google.maps.places.Autocomplete(document.getElementById('destination-input'));
@@ -228,15 +231,11 @@ function addMarker(location) {
 
     const isVisited = visitedLocations.has(location.id);
     
-    const marker = new google.maps.Marker({
+    const marker = new google.maps.marker.AdvancedMarkerElement({
         map,
         position: { lat: location.lat, lng: location.lng },
         title: location.name,
-        icon: {
-            url: '/static/img/marker.svg',
-            scaledSize: new google.maps.Size(40, 40),
-            opacity: isVisited ? 0.5 : 1
-        }
+        content: buildAdvancedMarker(location, isVisited)
     });
 
     marker.addListener('click', () => {

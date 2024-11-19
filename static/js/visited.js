@@ -2,6 +2,18 @@ let visitedMap;
 const visitedLocations = new Set(JSON.parse(localStorage.getItem('visitedLocations') || '[]'));
 const locationDetails = JSON.parse(localStorage.getItem('locationDetails') || '{}');
 
+function buildVisitedMarker() {
+    const markerContent = document.createElement('div');
+    markerContent.innerHTML = `
+        <div style="cursor: pointer;">
+            <img src="/static/img/marker.svg" 
+                 style="width: 40px; height: 40px; opacity: 0.7;"
+                 alt="Visited location marker">
+        </div>
+    `;
+    return markerContent;
+}
+
 function initializeViews() {
     const gridView = document.getElementById('grid-view');
     const mapView = document.getElementById('map-view');
@@ -34,15 +46,11 @@ function initMap() {
         // Add markers for all visited locations
         Object.entries(locationDetails).forEach(([id, location]) => {
             if (visitedLocations.has(id)) {
-                new google.maps.Marker({
+                new google.maps.marker.AdvancedMarkerElement({
                     map: visitedMap,
                     position: { lat: location.lat, lng: location.lng },
                     title: location.name,
-                    icon: {
-                        url: '/static/img/marker.svg',
-                        scaledSize: new google.maps.Size(40, 40),
-                        opacity: 0.7
-                    }
+                    content: buildVisitedMarker()
                 });
             }
         });
@@ -62,7 +70,6 @@ function displayVisitedPlaces() {
             visitDate: location.visitDate || new Date().toISOString()
         }));
 
-    // Sort places based on selected option
     const sortSelect = document.getElementById('sort-select');
     const sortOrder = sortSelect.value;
 

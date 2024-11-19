@@ -19,6 +19,13 @@ app.config.update(
 
 db.init_app(app)
 
+# Add caching headers
+@app.after_request
+def add_header(response):
+    if 'Cache-Control' not in response.headers:
+        response.headers['Cache-Control'] = 'public, max-age=300'
+    return response
+
 # Import models after db initialization
 import models
 
