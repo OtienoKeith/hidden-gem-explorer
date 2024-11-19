@@ -92,36 +92,8 @@
 <!-- Load points and map scripts first -->
 <script src="/static/js/points.js"></script>
 <script src="/static/js/map.js"></script>
-<!-- Initialize map only after Google Maps loads -->
-<script>
-    window.initMap = function() {
-        console.log('Google Maps loaded, initializing map...');
-        const mapElement = document.getElementById('map');
-        if (!mapElement) {
-            console.error('Map container not found');
-            return;
-        }
-
-        try {
-            new google.maps.Map(mapElement, {
-                center: { lat: 40.7128, lng: -74.0060 },
-                zoom: 12,
-                mapTypeId: 'terrain',
-                tilt: 45
-            });
-            console.log('Map initialized successfully');
-        } catch (error) {
-            console.error('Error initializing map:', error);
-            mapElement.innerHTML = `
-                <div class="alert alert-danger">
-                    Error loading map. Please refresh the page.
-                </div>
-            `;
-        }
-    };
-</script>
-<!-- Load Google Maps with proper async pattern -->
-<script async defer
+<!-- Remove inline initMap script since it's already in map.js -->
+<script async
     src="https://maps.googleapis.com/maps/api/js?key={{ api_key }}&libraries=places&callback=initMap">
 </script>
 {% endblock %}

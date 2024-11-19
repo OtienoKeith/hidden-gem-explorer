@@ -58,16 +58,13 @@ async function getUserLocation() {
     });
 }
 
+// Update the initMap function to handle all initialization
 async function initMap() {
     try {
         console.log('Initializing map...');
         const mapElement = document.getElementById('map');
         if (!mapElement) {
             throw new Error('Map container not found');
-        }
-
-        if (!window.google || !window.google.maps) {
-            throw new Error('Google Maps not loaded');
         }
 
         map = new google.maps.Map(mapElement, {
@@ -77,9 +74,27 @@ async function initMap() {
             tilt: 45
         });
 
-        console.log('Map initialized successfully');
-        // Initialize remaining features...
+        // Initialize features after map is created
         await setupMapFeatures();
+        
+        // Try to get user location
+        try {
+            const userLocation = await getUserLocation();
+            map.setCenter(userLocation);
+            map.setZoom(13);
+
+            const data = await fetchLocations(userLocation.lat, userLocation.lng);
+            initializePoints(data.locations);
+            data.locations.forEach(location => addMarker(location));
+        } catch (error) {
+            console.log('Using default New York City location:', error.message);
+            // Load default location data
+            const data = await fetchLocations(40.7128, -74.0060);
+            initializePoints(data.locations);
+            data.locations.forEach(location => addMarker(location));
+        }
+
+        console.log('Map initialized successfully');
     } catch (error) {
         console.error('Error initializing map:', error);
         const mapContainer = document.getElementById('map');
@@ -166,19 +181,6 @@ async function setupMapFeatures() {
             map.setTilt(0);
         }
     });
-
-    // Try to get user's location
-    try {
-        const userLocation = await getUserLocation();
-        map.setCenter(userLocation);
-        map.setZoom(13);
-
-        const data = await fetchLocations(userLocation.lat, userLocation.lng);
-        initializePoints(data.locations);
-        data.locations.forEach(location => addMarker(location));
-    } catch (error) {
-        console.log('Using default New York City location:', error.message);
-    }
 }
 
 function addMarker(location) {
