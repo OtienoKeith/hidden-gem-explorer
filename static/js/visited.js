@@ -37,7 +37,12 @@ function initMap() {
                 new google.maps.marker.AdvancedMarkerElement({
                     map: visitedMap,
                     position: { lat: location.lat, lng: location.lng },
-                    title: location.name
+                    title: location.name,
+                    content: new google.maps.marker.PinElement({
+                        glyph: "✓",
+                        glyphColor: "#FFFFFF",
+                        background: "#4CAF50"
+                    })
                 });
             }
         });

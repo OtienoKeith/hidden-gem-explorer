@@ -60,3 +60,4 @@ def get_places():
 with app.app_context():
     import models
     db.create_all()
+    print("Database initialized successfully")

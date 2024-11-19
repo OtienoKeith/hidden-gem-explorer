@@ -89,7 +89,14 @@
 {% endblock %}
 
 {% block scripts %}
-<script src="https://maps.googleapis.com/maps/api/js?key={{ api_key }}&libraries=places&callback=initMap" defer></script>
+<script>
+    function initMap() {
+        // Existing map initialization code will be loaded from map.js
+    }
+</script>
+<script async
+    src="https://maps.googleapis.com/maps/api/js?key={{ api_key }}&libraries=places,marker&callback=initMap">
+</script>
 <script src="/static/js/points.js"></script>
 <script src="/static/js/map.js"></script>
 {% endblock %}
