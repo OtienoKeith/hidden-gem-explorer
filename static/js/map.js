@@ -58,7 +58,6 @@ async function getUserLocation() {
     });
 }
 
-// Update the initMap function to handle all initialization
 async function initMap() {
     try {
         console.log('Initializing map...');
@@ -112,23 +111,27 @@ async function initMap() {
 }
 
 async function setupMapFeatures() {
-    // Initialize search box
-    const input = document.getElementById('pac-input');
-    if (input) {
-        searchBox = new google.maps.places.SearchBox(input);
+    // Initialize search box with error handling
+    try {
+        const input = document.getElementById('pac-input');
+        if (!input) throw new Error('Search input not found');
+
+        // Create SearchBox with proper options
+        searchBox = new google.maps.places.Autocomplete(input, {
+            types: ['(cities)'],
+            fields: ['geometry', 'name', 'formatted_address']
+        });
+
+        // Bind to map bounds
         map.addListener('bounds_changed', () => {
             searchBox.setBounds(map.getBounds());
         });
 
-        searchBox.addListener('places_changed', async () => {
+        // Listen for place selection
+        searchBox.addListener('place_changed', async () => {
             try {
-                const places = searchBox.getPlaces();
-                if (places.length === 0) return;
-
-                const place = places[0];
-                if (!place.geometry || !place.geometry.location) {
-                    throw new Error('Invalid place selected');
-                }
+                const place = searchBox.getPlace();
+                if (!place.geometry) throw new Error('Place has no geometry');
 
                 clearMarkers();
                 clearPoints();
@@ -161,26 +164,78 @@ async function setupMapFeatures() {
                 `;
             }
         });
+    } catch (error) {
+        console.error('Error setting up search:', error);
+        const searchContainer = document.querySelector('.card-body');
+        if (searchContainer) {
+            searchContainer.innerHTML += `
+                <div class="alert alert-danger mt-2">
+                    Search functionality unavailable: ${error.message}
+                </div>
+            `;
+        }
     }
 
-    // Initialize directions service
-    directionsService = new google.maps.DirectionsService();
-    directionsRenderer = new google.maps.DirectionsRenderer({
-        map: map,
-        panel: document.getElementById('route-panel')
-    });
+    // Initialize route planning with error handling
+    try {
+        directionsService = new google.maps.DirectionsService();
+        directionsRenderer = new google.maps.DirectionsRenderer({
+            map,
+            panel: document.getElementById('route-panel')
+        });
 
-    // Setup other features
-    setupRoutePlanning();
-
-    // Setup map tilt
-    map.addListener('zoom_changed', () => {
-        if (map.getZoom() > 15) {
-            map.setTilt(45);
-        } else {
-            map.setTilt(0);
+        const originInput = document.getElementById('origin-input');
+        const destInput = document.getElementById('destination-input');
+        
+        if (originInput && destInput) {
+            new google.maps.places.Autocomplete(originInput);
+            new google.maps.places.Autocomplete(destInput);
         }
-    });
+
+        setupRoutePlanning();
+    } catch (error) {
+        console.error('Error setting up navigation:', error);
+    }
+}
+
+function setupRoutePlanning() {
+    const routeButton = document.getElementById('route-button');
+    const toggleRoute = document.getElementById('toggle-route');
+    const routePanel = document.getElementById('route-panel');
+    
+    if (toggleRoute && routePanel) {
+        toggleRoute.addEventListener('click', () => {
+            const isHidden = routePanel.style.display === 'none';
+            routePanel.style.display = isHidden ? 'block' : 'none';
+            toggleRoute.textContent = isHidden ? 'Hide Route Planner' : 'Show Route Planner';
+        });
+    }
+
+    if (routeButton) {
+        routeButton.addEventListener('click', () => {
+            const origin = document.getElementById('origin-input')?.value;
+            const destination = document.getElementById('destination-input')?.value;
+
+            if (!origin || !destination) {
+                alert('Please enter both origin and destination');
+                return;
+            }
+
+            directionsService.route({
+                origin,
+                destination,
+                travelMode: google.maps.TravelMode.DRIVING
+            }, (response, status) => {
+                if (status === 'OK') {
+                    directionsRenderer.setDirections(response);
+                    // Clear existing markers when showing route
+                    clearMarkers();
+                } else {
+                    alert('Could not calculate directions: ' + status);
+                }
+            });
+        });
+    }
 }
 
 function addMarker(location) {
@@ -233,43 +288,6 @@ function addMarker(location) {
     });
 
     markers.push(marker);
-}
-
-function setupRoutePlanning() {
-    const routeButton = document.getElementById('route-button');
-    const toggleRoute = document.getElementById('toggle-route');
-    const routePanel = document.getElementById('route-panel');
-    
-    toggleRoute?.addEventListener('click', () => {
-        routePanel.style.display = routePanel.style.display === 'none' ? 'block' : 'none';
-    });
-
-    routeButton?.addEventListener('click', () => {
-        const origin = document.getElementById('origin-input')?.value;
-        const destination = document.getElementById('destination-input')?.value;
-
-        if (!origin || !destination) {
-            alert('Please enter both origin and destination');
-            return;
-        }
-
-        directionsService.route({
-            origin,
-            destination,
-            travelMode: google.maps.TravelMode.DRIVING
-        }, (response, status) => {
-            if (status === 'OK') {
-                directionsRenderer.setDirections(response);
-            } else {
-                alert('Directions request failed due to ' + status);
-            }
-        });
-    });
-
-    if (google.maps.places) {
-        new google.maps.places.Autocomplete(document.getElementById('origin-input'));
-        new google.maps.places.Autocomplete(document.getElementById('destination-input'));
-    }
 }
 
 function parseDescription(description) {
