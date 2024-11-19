@@ -79,9 +79,9 @@ async function initMap() {
             const place = places[0];
             if (!place.geometry || !place.geometry.location) return;
 
-            // Clear existing markers
+            // Clear existing markers and points
             clearMarkers();
-            clearPoints();
+            clearPoints();  // This will now clear visited locations too
             
             // Center map on new location
             map.setCenter(place.geometry.location);
@@ -208,15 +208,20 @@ function addMarker(location) {
 
     const isVisited = visitedLocations.has(location.id);
     
-    const marker = new google.maps.Marker({
+    const markerContent = document.createElement('div');
+    markerContent.innerHTML = `
+        <div style="cursor: pointer;">
+            <img src="/static/img/marker.svg" 
+                 style="width: 40px; height: 40px; opacity: ${isVisited ? 0.5 : 1};"
+                 alt="Location marker">
+        </div>
+    `;
+
+    const marker = new google.maps.marker.AdvancedMarkerElement({
         map,
-        title: location.name,
         position: { lat: location.lat, lng: location.lng },
-        icon: {
-            url: '/static/img/marker.svg',
-            scaledSize: new google.maps.Size(40, 40),
-            opacity: isVisited ? 0.5 : 1
-        }
+        title: location.name,
+        content: markerContent
     });
 
     marker.addListener('click', () => {
@@ -284,7 +289,7 @@ function updateLocationInfo(location) {
                 ${isVisited ? 'Visited' : `${location.points} points available`}
             </span>
             ${!isVisited ? `<button onclick="collectPoints('${location.id}', ${location.points})" 
-                                  class="btn btn-sm btn-success">
+                                   class="btn btn-sm btn-success">
                 Collect Points
             </button>` : ''}
         </div>

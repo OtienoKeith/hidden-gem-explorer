@@ -38,6 +38,10 @@ function updatePointsDisplay() {
 function clearPoints() {
     allLocations = [];
     totalAvailablePoints = 0;
+    // Clear visited locations when changing area
+    visitedLocations.clear();
+    localStorage.setItem('visitedLocations', '[]');
+    localStorage.setItem('locationDetails', '{}');
     updatePointsDisplay();
 }
 
